@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wedding Gift</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #f7efe5, #efe1d1);
+    font-family: Georgia, serif;
+    color: #4a3f35;
+    overflow: hidden;
+  }
+
+  .container {
+    text-align: center;
+    position: relative;
+  }
+
+  .instruction {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .gift {
+    width: 160px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .gift.idle:hover {
+    animation: shake-slow 0.35s infinite;
+  }
+
+  @keyframes shake-slow {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(3deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-3deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  @keyframes shake-fast {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(6deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-6deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  .zooming {
+    animation: zoomIn 5s forwards;
+  }
+
+  @keyframes zoomIn {
+    from { transform: scale(1); }
+    to { transform: scale(2.2); }
+  }
+
+  .shaking-fast {
+    animation: shake-fast 0.1s infinite;
+  }
+
+  .explode {
+    animation: explode 0.5s forwards;
+  }
+
+  @keyframes explode {
+    to {
+      transform: scale(3);
+      opacity: 0;
+    }
+  }
+
+  .counter {
+    margin-top: 12px;
+    font-size: 14px;
+    opacity: 0.7;
+  }
+
+  .failed {
+    color: #b00020;
+    margin-top: 12px;
+  }
+
+  .message {
+    display: none;
+    background: #fff;
+    margin-top: 30px;
+    padding: 30px;
+    border-radius: 16px;
+    max-width: 600px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    z-index: 10;
+    position: relative;
+  }
+
+  /* Confetti */
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -10px;
+    animation: fall linear forwards;
+  }
+
+  @keyframes fall {
+    to {
+      transform: translateY(110vh) rotate(720deg);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="instruction">
+    🎁 Tap <strong>27 times continuously</strong><br>
+  </div>
+
+  <img id="gift" class="gift idle"
+    src="data:image/svg+xml;utf8,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
+      <rect x='30' y='70' width='140' height='100' rx='12' fill='%23c94c4c'/>
+      <rect x='90' y='70' width='20' height='100' fill='%23f5d76e'/>
+      <rect x='30' y='105' width='140' height='20' fill='%23f5d76e'/>
+      <rect x='30' y='50' width='140' height='30' rx='10' fill='%23a83c3c'/>
+      <circle cx='100' cy='45' r='15' fill='%23f5d76e'/>
+    </svg>"
+    alt="Gift">
+
+  <div class="counter" id="counter">0 / 27</div>
+  <div class="failed" id="failed"></div>
+
+  <div class="message" id="message">
+    <h1>Happy Wedding Day</h1>
+    <h2>Jyesta & Nunil</h2>
+
+    <p>
+      Today marks the beginning of a beautiful journey together.  
+      May your love grow stronger every day,  
+      your friendship remain your foundation,  
+      and your home be filled with joy and peace.
+    </p>
+
+    <p><em>With love,<br>Your best friend</em></p>
+  </div>
+</div>
+
+<script>
+  const gift = document.getElementById("gift");
+  const counter = document.getElementById("counter");
+  const failed = document.getElementById("failed");
+  const message = document.getElementById("message");
+
+  const MAX_DELAY = 200;
+  const REQUIRED_TAPS = 27;
+
+  let taps = 0;
+  let lastTapTime = null;
+  let opened = false;
+  let pauseTimer = null;
+  let confettiInterval = null;
+
+  function reset(reason) {
+    taps = 0;
+    lastTapTime = null;
+    counter.textContent = "0 / 27";
+    failed.textContent = reason || "";
+    clearTimeout(pauseTimer);
+  }
+
+  function startConfettiRain() {
+    confettiInterval = setInterval(() => {
+      for (let i = 0; i < 6; i++) {
+        const c = document.createElement("div");
+        c.className = "confetti";
+        c.style.left = Math.random() * 100 + "vw";
+        c.style.background = `hsl(${Math.random() * 360}, 80%, 60%)`;
+        c.style.animationDuration = (Math.random() * 2 + 3) + "s";
+        document.body.appendChild(c);
+
+        setTimeout(() => c.remove(), 6000);
+      }
+    }, 300);
+  }
+
+  function stopConfettiRain() {
+    clearInterval(confettiInterval);
+  }
+
+  function startOpeningAnimation() {
+    gift.classList.remove("idle");
+    gift.classList.add("zooming");
+
+    setTimeout(() => {
+      gift.classList.add("shaking-fast");
+    }, 2000);
+
+    setTimeout(() => {
+      gift.classList.add("explode");
+      startConfettiRain();
+    }, 5000);
+
+    setTimeout(() => {
+      gift.style.display = "none";
+      counter.style.display = "none";
+      message.style.display = "block";
+    }, 5500);
+
+    setTimeout(() => {
+      stopConfettiRain();
+    }, 11000);
+  }
+
+  function evaluate() {
+    if (opened) return;
+
+    if (taps === REQUIRED_TAPS) {
+      opened = true;
+      failed.textContent = "";
+      startOpeningAnimation();
+    } else {
+      reset("❌ Failed! Must be exactly 27 taps.");
+    }
+  }
+
+  gift.addEventListener("click", () => {
+    if (opened) return;
+
+    const now = Date.now();
+
+    if (lastTapTime && now - lastTapTime > MAX_DELAY) {
+      evaluate();
+      return;
+    }
+
+    lastTapTime = now;
+    taps++;
+    counter.textContent = taps + " / 27";
+
+    if (taps > REQUIRED_TAPS) {
+      reset("❌ Failed! Too many taps.");
+      return;
+    }
+
+    clearTimeout(pauseTimer);
+    pauseTimer = setTimeout(evaluate, MAX_DELAY + 10);
+  });
+</script>
+
+
+</body>
+</html>
