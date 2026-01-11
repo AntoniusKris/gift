@@ -3,9 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <title>Wedding Gift</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- LOCK MOBILE ZOOM -->
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <style>
+/* ---------- MOBILE SAFETY ---------- */
+html, body {
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
 /* ---------- BASE ---------- */
 body {
   margin: 0;
@@ -30,9 +39,15 @@ body {
   margin-bottom: 20px;
 }
 
+/* ---------- GIFT ---------- */
 .gift {
   width: 160px;
   cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transform-origin: center;
+  will-change: transform;
 }
 
 .gift.idle:hover {
@@ -84,14 +99,14 @@ body {
   margin-top: 12px;
 }
 
-/* ---------- MESSAGE ---------- */
+/* ---------- MESSAGE CARD ---------- */
 .message {
   display: none;
   background: rgba(255,255,255,0.75);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   margin-top: 30px;
   padding: 30px;
-  border-radius: 16px;
+  border-radius: 18px;
   max-width: 600px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   animation: fadeText 3s ease forwards;
@@ -130,21 +145,24 @@ body {
 
 /* ---------- CONFETTI ---------- */
 .confetti {
-  position: absolute;
+  position: fixed;
   width: 10px;
   height: 10px;
   top: -10px;
   animation: fall linear forwards;
+  z-index: 3;
 }
 
 @keyframes fall {
-  to { transform: translateY(110vh) rotate(720deg); }
+  to {
+    transform: translateY(110vh) rotate(720deg);
+  }
 }
 
 /* ---------- MUSIC BUTTON ---------- */
 .music-btn {
   margin-top: 20px;
-  padding: 8px 16px;
+  padding: 8px 18px;
   border: none;
   border-radius: 20px;
   background: #4a3f35;
@@ -157,14 +175,14 @@ body {
 
 <body>
 
-<!-- Background -->
+<!-- BACKGROUND IMAGES -->
 <div class="bg-slideshow">
-  <div class="bg-slide" style="background-image:url('bg1.jpeg')"></div>
-  <div class="bg-slide" style="background-image:url('bg2.jpeg')"></div>
-  <div class="bg-slide" style="background-image:url('bg3.jpeg')"></div>
+  <div class="bg-slide" style="background-image:url('bg1.jpg')"></div>
+  <div class="bg-slide" style="background-image:url('bg2.jpg')"></div>
+  <div class="bg-slide" style="background-image:url('bg3.jpg')"></div>
 </div>
 
-<!-- Audio -->
+<!-- AUDIO -->
 <audio id="bgMusic" loop>
   <source src="wedding-music.mp3" type="audio/mpeg">
 </audio>
@@ -189,8 +207,8 @@ body {
     <h1>Happy Wedding Day</h1>
     <h2>Jyesta & Nunil</h2>
     <p>
-      May your love grow stronger every day,  
-      your friendship remain your foundation,  
+      May your love grow stronger every day,<br>
+      your friendship be your foundation,<br>
       and your home be filled with peace and joy.
     </p>
     <p><em>With love,<br>Your best friend</em></p>
@@ -214,17 +232,29 @@ let lastTap = null;
 let timer = null;
 let opened = false;
 
-gift.onclick = () => {
+gift.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
   if (opened) return;
+
   const now = Date.now();
-  if (lastTap && now - lastTap > MAX_DELAY) return check();
+
+  if (lastTap && now - lastTap > MAX_DELAY) {
+    check();
+    return;
+  }
+
   lastTap = now;
   taps++;
   counter.textContent = taps + " / 27";
-  if (taps > REQUIRED_TAPS) return reset("❌ Too many taps");
+
+  if (taps > REQUIRED_TAPS) {
+    reset("❌ Too many taps");
+    return;
+  }
+
   clearTimeout(timer);
   timer = setTimeout(check, MAX_DELAY + 10);
-};
+});
 
 function reset(msg) {
   taps = 0;
@@ -247,45 +277,68 @@ let slideIndex = 0;
 function openGift() {
   opened = true;
   gift.classList.add("zooming");
-  setTimeout(()=>gift.classList.add("shaking-fast"),2000);
-  setTimeout(()=>gift.classList.add("explode"),5000);
-  setTimeout(showMessage,5500);
+  setTimeout(() => gift.classList.add("shaking-fast"), 2000);
+  setTimeout(() => {
+    gift.classList.add("explode");
+    startConfetti();
+  }, 5000);
+  setTimeout(showMessage, 5500);
 }
 
 function showMessage() {
-  gift.style.display="none";
-  counter.style.display="none";
-  message.style.display="block";
+  gift.style.display = "none";
+  counter.style.display = "none";
+  message.style.display = "block";
   startSlideshow();
   fadeInMusic();
 }
 
-/* ---------- BACKGROUND ---------- */
-function startSlideshow(){
+/* ---------- SLIDES ---------- */
+function startSlideshow() {
   slides[0].classList.add("active");
-  setInterval(()=>{
+  setInterval(() => {
     slides[slideIndex].classList.remove("active");
-    slideIndex=(slideIndex+1)%slides.length;
+    slideIndex = (slideIndex + 1) % slides.length;
     slides[slideIndex].classList.add("active");
-  },10000);
+  }, 10000);
 }
 
 /* ---------- MUSIC ---------- */
-function fadeInMusic(){
+function fadeInMusic() {
   music.volume = 0;
   music.play();
   let v = 0;
-  const fade = setInterval(()=>{
+  const fade = setInterval(() => {
     v += 0.02;
-    music.volume = Math.min(v,0.6);
+    music.volume = Math.min(v, 0.6);
     if (v >= 0.6) clearInterval(fade);
-  },100);
+  }, 100);
 }
 
-btn.onclick = ()=>{
-  if (music.paused){ music.play(); btn.textContent="⏸ Pause Music"; }
-  else { music.pause(); btn.textContent="▶ Play Music"; }
+btn.onclick = () => {
+  if (music.paused) {
+    music.play();
+    btn.textContent = "⏸ Pause Music";
+  } else {
+    music.pause();
+    btn.textContent = "▶ Play Music";
+  }
 };
+
+/* ---------- CONFETTI ---------- */
+function startConfetti() {
+  setInterval(() => {
+    for (let i = 0; i < 6; i++) {
+      const c = document.createElement("div");
+      c.className = "confetti";
+      c.style.left = Math.random() * 100 + "vw";
+      c.style.background = `hsl(${Math.random()*360},80%,60%)`;
+      c.style.animationDuration = (Math.random()*2 + 3) + "s";
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 6000);
+    }
+  }, 300);
+}
 </script>
 
 </body>
